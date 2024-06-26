@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { TouchableOpacity, View, Text } from "react-native";
 import { styles } from "./styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -8,6 +8,7 @@ import { TasksType } from "../../tasksType/types";
 type TasksProps = TasksType & {
   onTaskDone: (id: string) => void;
   onTaskDelete: (id: string) => void;
+  onTaskEdit: (id: string, title: string) => void;
 };
 
 const Tasks = ({
@@ -16,6 +17,7 @@ const Tasks = ({
   isCompleted,
   onTaskDone,
   onTaskDelete,
+  onTaskEdit,
 }: TasksProps) => {
   return (
     <View style={styles.TasksContainer}>
@@ -37,13 +39,22 @@ const Tasks = ({
           {title}
         </Text>
       </View>
-      <TouchableOpacity onPress={() => onTaskDelete(id)}>
-        <MaterialCommunityIcons
-          name="trash-can-outline"
-          size={22}
-          color={theme.colors.base.gray300}
-        />
-      </TouchableOpacity>
+      <View style={styles.containerButton}>
+        <TouchableOpacity onPress={() => onTaskEdit(id, title)}>
+          <MaterialCommunityIcons
+            name="square-edit-outline"
+            size={22}
+            color={theme.colors.base.gray300}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onTaskDelete(id)}>
+          <MaterialCommunityIcons
+            name="trash-can-outline"
+            size={22}
+            color={theme.colors.base.gray300}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

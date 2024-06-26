@@ -6,6 +6,7 @@ import {
 } from "@react-navigation/stack";
 import Login from "../screens/login/index";
 import Home from "../screens/Home/index";
+import ToastMessage from "../components/ToastMessage";
 
 export type RoutesProps = {
   Login: undefined;
@@ -28,6 +29,7 @@ const MyStack = () => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Home" component={Home} />
       </Stack.Navigator>
+      <ToastMessage />
     </NavigationContainer>
   );
 };

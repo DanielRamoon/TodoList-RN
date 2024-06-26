@@ -7,10 +7,18 @@ import { TasksType } from "../../tasksType/types";
 import { Empty } from "../../components/empty";
 import { uuid } from "../../utils/uid";
 import { loadTasks, saveTasks } from "../../storage/index";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import FilterButtons from "../../components/filter";
+import Toast from "react-native-toast-message";
 
 const HomeScreens = () => {
   const [tasks, setTasks] = useState<TasksType[]>([]);
   const [newTasks, setNewTasks] = useState("");
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [filter, setFilter] = useState<"all" | "completed" | "incomplete">(
+    "all"
+  );
   const newTaskInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -25,13 +33,46 @@ const HomeScreens = () => {
     saveTasks(tasks);
   }, [tasks]);
 
-  const handleTaskAdd = () => {
-    if (newTasks.trim() !== "" && newTasks.length >= 5) {
+  const handleTaskAddOrUpdate = () => {
+    if (editTaskId) {
+      handleTaskUpdate();
+    } else if (newTasks.trim() !== "" && newTasks.length >= 5) {
       setTasks((task) => [
         ...task,
         { id: uuid(), isCompleted: false, title: newTasks.trim() },
       ]);
       setNewTasks("");
+      Toast.show({
+        type: "success",
+        text1: "Sucesso",
+        text2: "Tarefa criada com sucesso!",
+        visibilityTime: 3000,
+      });
+    }
+    newTaskInputRef.current?.blur();
+  };
+
+  const handleTaskUpdate = () => {
+    if (
+      editTaskId &&
+      editTaskTitle.trim() !== "" &&
+      editTaskTitle.length >= 5
+    ) {
+      setTasks((tasks) =>
+        tasks.map((task) =>
+          task.id === editTaskId
+            ? { ...task, title: editTaskTitle.trim() }
+            : task
+        )
+      );
+      setEditTaskId(null);
+      setEditTaskTitle("");
+      Toast.show({
+        type: "success",
+        text1: "Sucesso",
+        text2: "Tarefa atualizada com sucesso!",
+        visibilityTime: 3000,
+      });
     }
     newTaskInputRef.current?.blur();
   };
@@ -49,8 +90,15 @@ const HomeScreens = () => {
       {
         text: "Sim",
         style: "default",
-        onPress: () =>
-          setTasks((tasks) => tasks.filter((task) => task.id !== id)),
+        onPress: () => {
+          setTasks((tasks) => tasks.filter((task) => task.id !== id));
+          Toast.show({
+            type: "success",
+            text1: "Sucesso",
+            text2: "Tarefa excluída com sucesso!",
+            visibilityTime: 3000,
+          });
+        },
       },
       {
         text: "Não",
@@ -59,16 +107,28 @@ const HomeScreens = () => {
     ]);
   };
 
+  const handleEditTask = (id: string, title: string) => {
+    setEditTaskId(id);
+    setEditTaskTitle(title);
+    newTaskInputRef.current?.focus();
+  };
+
   const totalTasks = tasks.length;
   const totalTasksCompleted = tasks.filter((task) => task.isCompleted).length;
+
+  const filterTasks = tasks.filter((task) => {
+    if (filter === "completed") return task.isCompleted;
+    if (filter === "incomplete") return !task.isCompleted;
+    return true;
+  });
 
   return (
     <View style={styles.container}>
       <Header
         inputRef={newTaskInputRef}
-        task={newTasks}
-        onChangeText={setNewTasks}
-        onPrass={handleTaskAdd}
+        task={editTaskId ? editTaskTitle : newTasks}
+        onChangeText={editTaskId ? setEditTaskTitle : setNewTasks}
+        onPrass={handleTaskAddOrUpdate}
       />
       <View style={styles.taskContainer}>
         <View style={styles.info}>
@@ -86,13 +146,24 @@ const HomeScreens = () => {
           </View>
         </View>
 
+        <FilterButtons filter={filter} setFilter={setFilter} />
+
         <FlatList
-          data={tasks}
+          data={filterTasks}
           keyExtractor={(task) => task.id}
           renderItem={({ item }) => (
             <Tasks
-              onTaskDone={() => handleDone(item.id)}
+              onTaskDone={() => {
+                handleDone(item.id);
+                Toast.show({
+                  type: "success",
+                  text1: "Sucesso",
+                  text2: "Estado da tarefa atualizado com sucesso!",
+                  visibilityTime: 3000,
+                });
+              }}
               onTaskDelete={() => handleDelete(item.id)}
+              onTaskEdit={() => handleEditTask(item.id, item.title)}
               {...item}
             />
           )}

@@ -7,6 +7,7 @@ import {
 } from "@expo-google-fonts/inter";
 import Loading from "./src/components/loading";
 import MyStack from "./src/routes/routes";
+import Toast from "react-native-toast-message";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
